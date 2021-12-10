@@ -1,8 +1,8 @@
 import requests
 from typing import Generator
+from src.utils.parse_env import parse_env
 
-SIRENE_URL = "https://api.insee.fr/entreprises/sirene/V3/siren"
-TOKEN = "0db47b74-ceef-3c10-8af5-1d6fe3bccae3"
+env = parse_env()
 
 WORKFORCE_CODE = {
     "NN": None,
@@ -24,7 +24,7 @@ WORKFORCE_CODE = {
 }
 
 
-def call_sirene(company_name: str, token_key: str = TOKEN) -> dict:
+def call_sirene(company_name: str, token_key: str) -> dict:
     """
     Calls SIRENE API from a company name and token key
 
@@ -41,7 +41,7 @@ def call_sirene(company_name: str, token_key: str = TOKEN) -> dict:
     """
     params = dict(q=f'periode(denominationUniteLegale:"{company_name}")')
     headers = dict(Authorization=f"Bearer {token_key}")
-    response = requests.get(SIRENE_URL, params=params, headers=headers)
+    response = requests.get(env["sirene"]["url"], params=params, headers=headers)
     if response.ok:
         return response.json()
     else:
@@ -82,7 +82,7 @@ def parse_company(company_output: dict) -> Generator:
     ]
 
 
-def get_company_info(company_name: str, token_key: str = TOKEN) -> dict:
+def get_company_info(company_name: str, token_key: str = env["sirene"]["key"]) -> dict:
     """
     Wrapper function able to return the data of the company from its name
 
