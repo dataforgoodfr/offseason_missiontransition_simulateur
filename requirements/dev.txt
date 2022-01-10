@@ -10,4 +10,5 @@ pytest
 pytest-cov
 python-lsp-server[all]
 pyupgrade
+requests_mock
 sphinx
