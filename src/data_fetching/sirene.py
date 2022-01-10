@@ -1,5 +1,7 @@
-import requests
 from typing import Generator
+
+import requests
+
 from src.utils.parse_env import parse_env
 
 env = parse_env()
