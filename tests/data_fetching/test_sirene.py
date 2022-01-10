@@ -1,10 +1,11 @@
 import json
+from datetime import date
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from src.data_fetching.sirene import BASE_URL, company_info
+from src.data_fetching.sirene import BASE_URL, company_info, parse_company_info
 
 
 @pytest.fixture(autouse=True)
@@ -33,3 +34,47 @@ class TestINSEESiren:
             )
 
         assert company_info("482755741")["siren"] == "482755741"
+
+
+class TestParseCompanyInfo:
+    def test_complete_company(self):
+        with open(
+            Path(__file__).parent / "fixtures" / "sirene" / "ent_exist.json"
+        ) as f:
+            api_content = json.load(f)
+
+        out = parse_company_info(api_content)
+
+        assert out == {
+            "siren": "482755741",
+            "date_creation": date(2005, 6, 6),
+            "effectifs": "32",
+            "effectifs_annee": 2019,
+            "ent_type": "ETI",
+            "ent_type_annee": 2019,
+            "forju": 5710,
+            "naf": "82.91Z",
+            "naf_version": "NAFRev2",
+            "ess": "N",
+        }
+
+    def test_complete_company_in_the_past(self):
+        with open(
+            Path(__file__).parent / "fixtures" / "sirene" / "ent_exist.json"
+        ) as f:
+            api_content = json.load(f)
+
+        out = parse_company_info(api_content, date(2005, 7, 1))
+
+        assert out == {
+            "siren": "482755741",
+            "date_creation": date(2005, 6, 6),
+            "effectifs": "32",
+            "effectifs_annee": 2019,
+            "ent_type": "ETI",
+            "ent_type_annee": 2019,
+            "forju": 5599,
+            "naf": "72.3Z",
+            "naf_version": "NAFRev1",
+            "ess": None,
+        }
