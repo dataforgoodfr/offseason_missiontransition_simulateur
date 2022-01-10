@@ -17,6 +17,9 @@ class INSEEConnector:
         return {"Authorization": f"Bearer {self.token}"}
 
     def generate_token(self):
+        """
+        Generate and store a temporary token for the Sirene API
+        """
         if Config.INSEE_KEY is None or Config.INSEE_SECRET is None:
             raise KeyError("Set environment variables INSEE_KEY and INSEE_SECRET")
 
@@ -31,6 +34,9 @@ class INSEEConnector:
 
 
 def request_insee(url: str):
+    """
+    Call an INSEE api with token regeneration if needed.
+    """
     connector = INSEEConnector()
 
     response = requests.get(url, headers=connector.header())
@@ -44,10 +50,12 @@ def request_insee(url: str):
     return response
 
 
-def company_info(siren):
+def company_info(siren, date_status: date = None) -> dict:
     """
     Get some data from INSEE API for the given company
-    :param siren: the company's siren to search for
+
+    :param siren:
+    The siren of company of interest
     """
 
     url = BASE_URL + f"siren/{siren}"
@@ -57,7 +65,7 @@ def company_info(siren):
     elif response.status_code != 200:
         raise RuntimeError(f"Error fetching siren {siren} : {response.text}")
 
-    return parse_company_info(response.json())
+    return parse_company_info(response.json(), date_status)
 
 
 WORKFORCE_CODE = {
@@ -80,9 +88,18 @@ WORKFORCE_CODE = {
 }
 
 
-def parse_company_info(content: dict, date_statut: date = None) -> dict:
+def parse_company_info(content: dict, date_status: date = None) -> dict:
+    """
+    Parse data from sirene/v3 API
+
+    :param:
+    The json content of the API call
+
+    :date_status:
+    Data at which to select the time dependent properties.
+    """
     common = content["uniteLegale"]
-    time_dependent = _get_time_dependent_info(common, date_statut)
+    time_dependent = _get_time_dependent_info(common, date_status)
     return {
         "siren": common["siren"],
         "date_creation": date.fromisoformat(common["dateCreationUniteLegale"]),
@@ -97,11 +114,14 @@ def parse_company_info(content: dict, date_statut: date = None) -> dict:
     }
 
 
-def _get_time_dependent_info(content: dict, date_statut: date = None):
+def _get_time_dependent_info(content: dict, date_status: date = None):
+    """
+    Identify the time period corresponding to the input date_satus
+    """
     history = content["periodesUniteLegale"]
     for past in history:
-        if date_statut is None:
+        if date_status is None:
             return past
-        if date_statut >= date.fromisoformat(past["dateDebut"]):
+        if date_status >= date.fromisoformat(past["dateDebut"]):
             return past
     return past
