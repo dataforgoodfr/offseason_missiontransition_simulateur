@@ -13,6 +13,8 @@ For development purposes, run :
 ```
 pip install -r requirements/dev.txt
 pre-commit install
+jupyter nbextension install https://github.com/drillan/jupyter-black/archive/master.zip --user
+jupyter nbextension enable jupyter-black-master/jupyter-black
 ```
 
 For production run :
