@@ -1,2 +1,6 @@
 black
 requests
+tensorflow
+transformers
+pandas
+fuzzywuzzy
