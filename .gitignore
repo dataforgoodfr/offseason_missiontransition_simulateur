@@ -134,4 +134,4 @@ dmypy.json
 
 # Data
 *.csv
-*.yml
+nohup.out
