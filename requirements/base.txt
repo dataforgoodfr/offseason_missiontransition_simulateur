@@ -3,3 +3,4 @@ pandas
 python-dotenv
 python-json-logger
 pyarrow
+openpyxl
