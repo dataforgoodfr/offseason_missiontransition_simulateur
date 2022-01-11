@@ -11,4 +11,5 @@ pytest-cov
 python-lsp-server[all]
 pyupgrade
 requests_mock
+scikit-learn
 sphinx
