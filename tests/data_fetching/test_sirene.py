@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.data_fetching.sirene import BASE_URL, company_info, parse_company_info
+from src.data_fetching.sirene import BASE_URL, etab_info, parse_etab_info
 
 
 @pytest.fixture(autouse=True)
@@ -20,61 +20,54 @@ class TestINSEESiren:
         with open(
             Path(__file__).parent / "fixtures" / "sirene" / "unknown_ent.json"
         ) as f:
-            requests_mock.get(f"{BASE_URL}siren/2", status_code=404, json=json.load(f))
+            requests_mock.get(f"{BASE_URL}siret/2", status_code=404, json=json.load(f))
         with pytest.raises(RuntimeError) as excinfo:
-            company_info(2)
+            etab_info(2)
         assert str(excinfo.value) == "Aucun élément trouvé pour le siren 999999998"
 
     def test_siret_found(self, requests_mock):
         with open(
-            Path(__file__).parent / "fixtures" / "sirene" / "ent_exist.json"
+            Path(__file__).parent / "fixtures" / "sirene" / "site_exist.json"
         ) as f:
             requests_mock.get(
-                f"{BASE_URL}siren/482755741", status_code=200, json=json.load(f)
+                f"{BASE_URL}siret/20000982700037", status_code=200, json=json.load(f)
             )
 
-        assert company_info("482755741")["siren"] == "482755741"
+        assert etab_info("20000982700037")["siret"] == "20000982700037"
 
 
-class TestParseCompanyInfo:
-    def test_complete_company(self):
+class TestParseEtabInfo:
+    def test_complete_siret(self):
         with open(
-            Path(__file__).parent / "fixtures" / "sirene" / "ent_exist.json"
+            Path(__file__).parent / "fixtures" / "sirene" / "site_exist.json"
         ) as f:
             api_content = json.load(f)
 
-        out = parse_company_info(api_content)
+        out = parse_etab_info(api_content)
 
         assert out == {
-            "siren": "482755741",
-            "date_creation": date(2005, 6, 6),
-            "effectifs": "32",
+            "siren": "200009827",
+            "date_creation": date(2007, 7, 13),
+            "effectifs": "22",
             "effectifs_annee": 2019,
-            "ent_type": "ETI",
+            "ent_type": "PME",
             "ent_type_annee": 2019,
-            "forju": 5710,
-            "naf": "82.91Z",
+            "forju": 7354,
+            "naf": "38.21Z",
             "naf_version": "NAFRev2",
-            "ess": "N",
-        }
-
-    def test_complete_company_in_the_past(self):
-        with open(
-            Path(__file__).parent / "fixtures" / "sirene" / "ent_exist.json"
-        ) as f:
-            api_content = json.load(f)
-
-        out = parse_company_info(api_content, date(2005, 7, 1))
-
-        assert out == {
-            "siren": "482755741",
-            "date_creation": date(2005, 6, 6),
-            "effectifs": "32",
-            "effectifs_annee": 2019,
-            "ent_type": "ETI",
-            "ent_type_annee": 2019,
-            "forju": 5599,
-            "naf": "72.3Z",
-            "naf_version": "NAFRev1",
             "ess": None,
+            "adr_code_commune": "2B096",
+            "adr_code_etranger": None,
+            "adr_code_postal": "20250",
+            "adr_commune": "CORTE",
+            "adr_lib_voie": "VC ZONE ARTISANALE",
+            "adr_num_voie": None,
+            "adr_type_voie": None,
+            "denomination": "SYNDICAT MIXTE POUR LA VALORISATION DES DECHETS DE CORSE",
+            "dt_crea_etab": date(2018, 1, 15),
+            "eff_etab": "22",
+            "etab_siege": True,
+            "naf_etab": "38.21Z",
+            "naf_version_etab": "NAFRev2",
+            "siret": "20000982700037",
         }

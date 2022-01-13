@@ -50,22 +50,31 @@ def request_insee(url: str):
     return response
 
 
-def company_info(siren, date_status: date = None) -> dict:
+def etab_info(siret):
     """
-    Get some data from INSEE API for the given company
+    Get some data from INSEE API for the given siret
 
-    :param siren:
-    The siren of company of interest
+    :param siret:
+    The siret of company site of interest
     """
-
-    url = BASE_URL + f"siren/{siren}"
+    url = BASE_URL + f"siret/{siret}"
     response = request_insee(url)
     if response.status_code == 404:
         raise RuntimeError(response.json()["header"]["message"])
     elif response.status_code != 200:
-        raise RuntimeError(f"Error fetching siren {siren} : {response.text}")
+        raise RuntimeError(f"Error fetching siret {siret} : {response.text}")
 
-    return parse_company_info(response.json(), date_status)
+    return parse_etab_info(response.json())
+
+
+def parse_etab_info(content: dict) -> dict:
+    """
+    Extract site infos from the API output
+    """
+    unite_legale = parse_unite_legale(content["etablissement"]["uniteLegale"])
+    etab_adresse = parse_etab_adresse(content["etablissement"]["adresseEtablissement"])
+    etab_info = parse_etab_details(content["etablissement"])
+    return {**etab_info, **etab_adresse, **unite_legale}
 
 
 WORKFORCE_CODE = {
@@ -88,7 +97,7 @@ WORKFORCE_CODE = {
 }
 
 
-def parse_company_info(content: dict, date_status: date = None) -> dict:
+def parse_unite_legale(unite_legale: dict) -> dict:
     """
     Parse data from sirene/v3 API
 
@@ -98,30 +107,41 @@ def parse_company_info(content: dict, date_status: date = None) -> dict:
     :date_status:
     Data at which to select the time dependent properties.
     """
-    common = content["uniteLegale"]
-    time_dependent = _get_time_dependent_info(common, date_status)
     return {
-        "siren": common["siren"],
-        "date_creation": date.fromisoformat(common["dateCreationUniteLegale"]),
-        "effectifs": common["trancheEffectifsUniteLegale"],
-        "effectifs_annee": int(common["anneeEffectifsUniteLegale"]),
-        "ent_type": common["categorieEntreprise"],
-        "ent_type_annee": int(common["anneeCategorieEntreprise"]),
-        "forju": int(time_dependent["categorieJuridiqueUniteLegale"]),
-        "naf": time_dependent["activitePrincipaleUniteLegale"],
-        "naf_version": time_dependent["nomenclatureActivitePrincipaleUniteLegale"],
-        "ess": time_dependent["economieSocialeSolidaireUniteLegale"],
+        "date_creation": date.fromisoformat(unite_legale["dateCreationUniteLegale"]),
+        "forju": int(unite_legale["categorieJuridiqueUniteLegale"]),
+        "denomination": unite_legale["denominationUniteLegale"],
+        "naf": unite_legale["activitePrincipaleUniteLegale"],
+        "naf_version": unite_legale["nomenclatureActivitePrincipaleUniteLegale"],
+        "ess": unite_legale["economieSocialeSolidaireUniteLegale"],
+        "effectifs": unite_legale["trancheEffectifsUniteLegale"],
+        "effectifs_annee": int(unite_legale["anneeEffectifsUniteLegale"]),
+        "ent_type": unite_legale["categorieEntreprise"],
+        "ent_type_annee": int(unite_legale["anneeCategorieEntreprise"]),
     }
 
 
-def _get_time_dependent_info(content: dict, date_status: date = None):
-    """
-    Identify the time period corresponding to the input date_satus
-    """
-    history = content["periodesUniteLegale"]
-    for past in history:
-        if date_status is None:
-            return past
-        if date_status >= date.fromisoformat(past["dateDebut"]):
-            return past
-    return past
+def parse_etab_adresse(etab: dict) -> dict:
+    return {
+        "adr_num_voie": etab["numeroVoieEtablissement"],
+        "adr_type_voie": etab["typeVoieEtablissement"],
+        "adr_lib_voie": etab["libelleVoieEtablissement"],
+        "adr_code_postal": etab["codePostalEtablissement"],
+        "adr_commune": etab["libelleCommuneEtablissement"],
+        "adr_code_commune": etab["codeCommuneEtablissement"],
+        "adr_code_etranger": etab["codePaysEtrangerEtablissement"],
+    }
+
+
+def parse_etab_details(etab: dict) -> dict:
+    return {
+        "siret": etab["siret"],
+        "siren": etab["siren"],
+        "dt_crea_etab": date.fromisoformat(etab["dateCreationEtablissement"]),
+        "eff_etab": etab["trancheEffectifsEtablissement"],
+        "etab_siege": etab["etablissementSiege"],
+        "naf_etab": etab["periodesEtablissement"][0]["activitePrincipaleEtablissement"],
+        "naf_version_etab": etab["periodesEtablissement"][0][
+            "nomenclatureActivitePrincipaleEtablissement"
+        ],
+    }
