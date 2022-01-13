@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import requests
 
@@ -15,7 +16,7 @@ def save_ademe_projects():
 
 def process_ademe():
     columns = {
-        "idBeneficiaire": "siren",
+        "idBeneficiaire": "siret",
         "nomBeneficiaire": "denomination",
         "dateConvention": "date_convention",
         "montant": None,
@@ -28,6 +29,7 @@ def process_ademe():
         .dropna(subset=["idBeneficiaire"])
         .astype(types)
         .rename(columns={k: v for k, v in columns.items() if v})
+        .assign(siren=lambda x: np.int64(x["siret"] // 1e5))
     )
     df.to_parquet(Config.INTDIR / "ademe.parquet")
 
