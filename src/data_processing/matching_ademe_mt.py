@@ -69,14 +69,14 @@ def make_and_save_final_dataframe(df_selected, df_ademe, df_mission_transition):
 
 if __name__ == "__main__":
     # Parsing the threshold
-    argumentparser = argparse.ArgumentParser()
-    argumentparser.add_argument(
+    argument_parser = argparse.ArgumentParser()
+    argument_parser.add_argument(
         "--threshold",
         type=float,
         help="Threshold to apply for the fuzzy matching",
         default=70,
     )
-    args = argumentparser.parse_args()
+    args = argument_parser.parse_args()
 
     # Loading data
     df_ademe, df_mission_transition = load_data()
