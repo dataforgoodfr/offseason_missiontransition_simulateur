@@ -68,7 +68,8 @@ def etab_info(siret: int) -> dict:
     """
     url = BASE_URL + f"siret/{str(siret).zfill(14)}"
     response = request_insee(url)
-    if response.status_code == 404:
+
+    if response.status_code in [404, 403]:
         raise RuntimeError(response.json()["header"]["message"])
     elif response.status_code != 200:
         raise RuntimeError(f"Error fetching siret {siret} : {response.text}")
@@ -163,10 +164,13 @@ def fetch_ademe_siret():
     ]
     to_fetch = _missing_siret(connector, ademe_siret)
     for siret in tqdm(to_fetch):
-        pd.DataFrame.from_records([etab_info(siret)]).to_sql(
-            "etab", con=connector, if_exists="append", index=False
-        )
+        try:
+            etab_data = pd.DataFrame.from_records([etab_info(siret)])
+        except RuntimeError as exc:
+            if str(exc).startswith("Établissement non diffusable"):
+                etab_data = pd.DataFrame.from_records([{"siret": siret}])
 
+        etab_data.to_sql("etab", con=connector, if_exists="append", index=False)
         # ensures that the amount of request is below the API limitation of 7/seconds
         time.sleep(0.15)
 

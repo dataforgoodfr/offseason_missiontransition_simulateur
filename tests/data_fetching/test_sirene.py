@@ -16,7 +16,7 @@ def token_generation_mock():
 
 
 class TestINSEESiren:
-    def test_error_error_unknown_company(self, requests_mock):
+    def test_error_unknown_company(self, requests_mock):
         with open(
             Path(__file__).parent / "fixtures" / "sirene" / "unknown_ent.json"
         ) as f:
@@ -26,6 +26,21 @@ class TestINSEESiren:
         with pytest.raises(RuntimeError) as excinfo:
             etab_info(2)
         assert str(excinfo.value) == "Aucun élément trouvé pour le siren 999999998"
+
+    def test_error_non_diffusable(self, requests_mock):
+        requests_mock.get(
+            f"{BASE_URL}siret/00000000000003",
+            status_code=404,
+            json={
+                "header": {
+                    "statut": 403,
+                    "message": "Établissement non diffusable (51456080400023)",
+                }
+            },
+        )
+        with pytest.raises(RuntimeError) as excinfo:
+            etab_info(3)
+        assert str(excinfo.value) == "Établissement non diffusable (51456080400023)"
 
     def test_siret_found(self, requests_mock):
         with open(
