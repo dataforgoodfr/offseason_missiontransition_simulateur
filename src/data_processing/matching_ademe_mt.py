@@ -92,7 +92,6 @@ if __name__ == "__main__":
 
     # Extracting salient couples
     df_selected = make_matching(df_product, args.threshold)
-    df_selected = pd.read_csv("./df_selected.csv")
 
     # Create and save final dataframe
     make_and_save_final_dataframe(df_selected, df_ademe, df_mission_transition)
