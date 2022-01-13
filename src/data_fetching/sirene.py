@@ -1,6 +1,7 @@
 import sqlite3
 import time
 from datetime import date
+from sqlite3 import Connection
 
 import pandas as pd
 import requests
@@ -14,7 +15,7 @@ from src.config import ROOTDIR, Config
 # The following line remove the constant warnings
 urllib3.disable_warnings()
 
-BASE_URL = "http://api.insee.fr/entreprises/sirene/V3/"
+BASE_URL = "https://api.insee.fr/entreprises/sirene/V3/"
 
 
 class INSEEConnector:
@@ -58,7 +59,7 @@ def request_insee(url: str):
     return response
 
 
-def etab_info(siret):
+def etab_info(siret: int) -> dict:
     """
     Get some data from INSEE API for the given siret
 
@@ -170,16 +171,23 @@ def fetch_ademe_siret():
         time.sleep(0.15)
 
 
-def _missing_siret(connector, ademe_siret: pd.Series) -> list:
+def _missing_siret(connector: Connection, ademe_siret: pd.Series) -> list:
     if "etab" not in _list_tables(connector):
-        with open(ROOTDIR / "references" / "etab_schema.sql") as f:
-            connector.cursor().execute(f.read())
+        _create_etab_table(connector)
         return sorted(set(ademe_siret))
     present = pd.read_sql("select siret from etab", connector)["siret"]
     return sorted(set(ademe_siret) - set(present))
 
 
-def _list_tables(con):
+def _create_etab_table(connector: Connection):
+    with open(ROOTDIR / "references" / "etab_schema.sql") as f:
+        connector.cursor().execute(f.read())
+
+
+def _list_tables(con: Connection) -> list:
+    """
+    List all created tables in a sqlite3 database
+    """
     cursor = con.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     return [x[0] for x in cursor.fetchall()]
