@@ -27,3 +27,12 @@ Create a `.env` text file at the root of the repository to store secret environm
 
 - `INSEE_KEY` : secret key for the insee api.
 - `INSEE_SECRET` : secret password for the insee api
+
+## Data pipeline
+
+To run the complete data pipeline steps :
+
+```
+python -m src.data_fetching.ademe
+python -m src.data_fetching.mission_transition
+```

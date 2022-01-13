@@ -7,11 +7,13 @@ from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv())
 
-logging.config.fileConfig(
-    Path(__file__).parents[1] / "logging.ini", disable_existing_loggers=False
-)
+ROOTDIR = Path(__file__).parents[1]
+
+logging.config.fileConfig(ROOTDIR / "logging.ini", disable_existing_loggers=False)
 
 
 class Config:
     INSEE_KEY = os.environ.get("INSEE_KEY")
     INSEE_SECRET = os.environ.get("INSEE_SECRET")
+    RAWDIR = Path(os.environ.get("RAWDIR", ROOTDIR / "data" / "raw"))
+    INTDIR = Path(os.environ.get("INTDIR", ROOTDIR / "data" / "interim"))

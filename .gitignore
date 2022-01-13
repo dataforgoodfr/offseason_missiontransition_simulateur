@@ -79,6 +79,8 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+nohup.out
+
 
 # IPython
 profile_default/
@@ -134,4 +136,5 @@ dmypy.json
 
 # Data
 *.csv
-nohup.out
+data/raw
+data/interim
