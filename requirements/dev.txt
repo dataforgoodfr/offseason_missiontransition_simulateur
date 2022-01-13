@@ -15,3 +15,4 @@ pyupgrade
 requests_mock
 scikit-learn
 sphinx
+tqdm
