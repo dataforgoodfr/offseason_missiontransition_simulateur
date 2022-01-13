@@ -45,14 +45,18 @@ def make_matching(df_product, threshold):
     return df_selected
 
 
-def make_and_save_final_dataframe(df_selected, df_ademe, df_mission_transition):
+def make_final_dataframe(df_selected, df_ademe, df_mission_transition):
     df_ademe_ = df_ademe.copy()
+    df_ademe_ = df_ademe_[df_ademe_.index.isin(df_selected["index_ademe"])]
     df_ademe_["merge_indexes"] = df_ademe_.apply(
         lambda row: df_selected[df_selected["index_ademe"] == row.name].index, axis=1
     )
     df_ademe_ = df_ademe_.explode("merge_indexes")
 
     df_mission_transition_ = df_mission_transition.copy()
+    df_mission_transition_ = df_mission_transition_[
+        df_mission_transition_.index.isin(df_selected["index_mt"])
+    ]
     df_mission_transition_["merge_indexes"] = df_mission_transition_.apply(
         lambda row: df_selected[df_selected["index_mt"] == row.name].index, axis=1
     )
@@ -64,7 +68,7 @@ def make_and_save_final_dataframe(df_selected, df_ademe, df_mission_transition):
         on="merge_indexes",
         suffixes=["_ademe", "_mt"],
     )
-    final_df.to_parquet(Config.INTDIR / "ademe_mt.parquet")
+    return final_df
 
 
 if __name__ == "__main__":
@@ -81,8 +85,6 @@ if __name__ == "__main__":
     # Loading data
     df_ademe, df_mission_transition = load_data()
 
-    df_ademe, df_mission_transition = df_ademe, df_mission_transition
-
     # Keeping the columns used in the fuzzy matching
     sub_df_ademe, sub_df_mission_transition = make_sub_dataframes(
         df_ademe, df_mission_transition
@@ -94,4 +96,6 @@ if __name__ == "__main__":
     df_selected = make_matching(df_product, args.threshold)
 
     # Create and save final dataframe
-    make_and_save_final_dataframe(df_selected, df_ademe, df_mission_transition)
+    final_df = make_final_dataframe(df_selected, df_ademe, df_mission_transition)
+
+    final_df.to_parquet(Config.INTDIR / "ademe_mt.parquet")

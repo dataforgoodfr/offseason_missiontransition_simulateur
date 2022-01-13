@@ -9,6 +9,7 @@ jupyter
 pre-commit
 pytest
 pytest-cov
+python-Levenshtein
 python-lsp-server[all]
 pyupgrade
 requests_mock
