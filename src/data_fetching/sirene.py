@@ -4,10 +4,15 @@ from datetime import date
 
 import pandas as pd
 import requests
+import urllib3
 from requests.auth import HTTPBasicAuth
 from tqdm import tqdm
 
 from src.config import ROOTDIR, Config
+
+# The INSEE API does not have security settings
+# The following line remove the constant warnings
+urllib3.disable_warnings()
 
 BASE_URL = "http://api.insee.fr/entreprises/sirene/V3/"
 
@@ -31,7 +36,6 @@ class INSEEConnector:
             "https://api.insee.fr/token",
             auth=HTTPBasicAuth(Config.INSEE_KEY, Config.INSEE_SECRET),
             data={"grant_type": "client_credentials", "validity_period": 3600 * 24},
-            verify=False,
         )
         assert r.status_code == 200
         self.token = r.json()["access_token"]
@@ -46,7 +50,7 @@ def request_insee(url: str):
     response = requests.get(url, headers=connector.header())
     if response.status_code == 401:
         connector.generate_token()
-        response = requests.get(url, headers=connector.header(), verify=True)
+        response = requests.get(url, headers=connector.header())
 
     if response.status_code == 401:
         raise RuntimeError("INSEE connection error")
@@ -161,6 +165,8 @@ def fetch_ademe_siret():
         pd.DataFrame.from_records([etab_info(siret)]).to_sql(
             "etab", con=connector, if_exists="append", index=False
         )
+
+        # ensures that the amount of request is below the API limitation of 7/seconds
         time.sleep(0.15)
 
 
