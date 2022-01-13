@@ -20,7 +20,9 @@ class TestINSEESiren:
         with open(
             Path(__file__).parent / "fixtures" / "sirene" / "unknown_ent.json"
         ) as f:
-            requests_mock.get(f"{BASE_URL}siret/2", status_code=404, json=json.load(f))
+            requests_mock.get(
+                f"{BASE_URL}siret/00000000000002", status_code=404, json=json.load(f)
+            )
         with pytest.raises(RuntimeError) as excinfo:
             etab_info(2)
         assert str(excinfo.value) == "Aucun élément trouvé pour le siren 999999998"
@@ -65,7 +67,7 @@ class TestParseEtabInfo:
             "adr_type_voie": None,
             "denomination": "SYNDICAT MIXTE POUR LA VALORISATION DES DECHETS DE CORSE",
             "dt_crea_etab": date(2018, 1, 15),
-            "eff_etab": "22",
+            "effectifs_etab": "22",
             "etab_siege": True,
             "naf_etab": "38.21Z",
             "naf_version_etab": "NAFRev2",

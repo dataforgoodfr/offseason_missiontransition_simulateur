@@ -1,11 +1,15 @@
+import sqlite3
+import time
 from datetime import date
 
+import pandas as pd
 import requests
 from requests.auth import HTTPBasicAuth
+from tqdm import tqdm
 
-from src.config import Config
+from src.config import ROOTDIR, Config
 
-BASE_URL = "https://api.insee.fr/entreprises/sirene/V3/"
+BASE_URL = "http://api.insee.fr/entreprises/sirene/V3/"
 
 
 class INSEEConnector:
@@ -57,7 +61,7 @@ def etab_info(siret):
     :param siret:
     The siret of company site of interest
     """
-    url = BASE_URL + f"siret/{siret}"
+    url = BASE_URL + f"siret/{str(siret).zfill(14)}"
     response = request_insee(url)
     if response.status_code == 404:
         raise RuntimeError(response.json()["header"]["message"])
@@ -115,9 +119,9 @@ def parse_unite_legale(unite_legale: dict) -> dict:
         "naf_version": unite_legale["nomenclatureActivitePrincipaleUniteLegale"],
         "ess": unite_legale["economieSocialeSolidaireUniteLegale"],
         "effectifs": unite_legale["trancheEffectifsUniteLegale"],
-        "effectifs_annee": int(unite_legale["anneeEffectifsUniteLegale"]),
+        "effectifs_annee": unite_legale["anneeEffectifsUniteLegale"],
         "ent_type": unite_legale["categorieEntreprise"],
-        "ent_type_annee": int(unite_legale["anneeCategorieEntreprise"]),
+        "ent_type_annee": unite_legale["anneeCategorieEntreprise"],
     }
 
 
@@ -138,10 +142,42 @@ def parse_etab_details(etab: dict) -> dict:
         "siret": etab["siret"],
         "siren": etab["siren"],
         "dt_crea_etab": date.fromisoformat(etab["dateCreationEtablissement"]),
-        "eff_etab": etab["trancheEffectifsEtablissement"],
+        "effectifs_etab": etab["trancheEffectifsEtablissement"],
         "etab_siege": etab["etablissementSiege"],
         "naf_etab": etab["periodesEtablissement"][0]["activitePrincipaleEtablissement"],
         "naf_version_etab": etab["periodesEtablissement"][0][
             "nomenclatureActivitePrincipaleEtablissement"
         ],
     }
+
+
+def fetch_ademe_siret():
+    connector = sqlite3.connect(Config.DB_URI)
+    ademe_siret = pd.read_parquet(Config.INTDIR / "ademe.parquet", columns=["siret"])[
+        "siret"
+    ]
+    to_fetch = _missing_siret(connector, ademe_siret)
+    for siret in tqdm(to_fetch):
+        pd.DataFrame.from_records([etab_info(siret)]).to_sql(
+            "etab", con=connector, if_exists="append", index=False
+        )
+        time.sleep(0.15)
+
+
+def _missing_siret(connector, ademe_siret: pd.Series) -> list:
+    if "etab" not in _list_tables(connector):
+        with open(ROOTDIR / "references" / "etab_schema.sql") as f:
+            connector.cursor().execute(f.read())
+        return sorted(set(ademe_siret))
+    present = pd.read_sql("select siret from etab", connector)["siret"]
+    return sorted(set(ademe_siret) - set(present))
+
+
+def _list_tables(con):
+    cursor = con.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    return [x[0] for x in cursor.fetchall()]
+
+
+if __name__ == "__main__":
+    fetch_ademe_siret()
