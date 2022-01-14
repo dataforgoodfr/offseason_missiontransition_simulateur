@@ -10,45 +10,33 @@ from src.data_processing.matching_ademe_mt import make_final_dataframe, make_mat
 def dataframes():
     df_ademe = pd.read_csv(
         Path(__file__).parent / "fixtures" / "matching_ademe_mt" / "df_ademe.csv",
-        index_col=0,
     )
     df_mission_transition = pd.read_csv(
         Path(__file__).parent
         / "fixtures"
         / "matching_ademe_mt"
         / "df_mission_transition.csv",
-        index_col=0,
     )
     yield df_ademe, df_mission_transition
 
 
 class TestMatchingAdemeMissionTransition:
     def test_make_matching(self):
-        sub_df_ademe = pd.read_csv(
-            Path(__file__).parent
-            / "fixtures"
-            / "matching_ademe_mt"
-            / "sub_df_ademe.csv"
+        df_product = pd.read_csv(
+            Path(__file__).parent / "fixtures" / "matching_ademe_mt" / "df_product.csv",
         )
-        sub_df_mission_transition = pd.read_csv(
-            Path(__file__).parent
-            / "fixtures"
-            / "matching_ademe_mt"
-            / "sub_df_mission_transition.csv"
-        )
-
-        df_product = sub_df_ademe.merge(sub_df_mission_transition, how="cross")
-        df_selected = make_matching(df_product, 70)
+        df_selected = make_matching(df_product, 75)
 
         true_df_selected = pd.read_csv(
             Path(__file__).parent
             / "fixtures"
             / "matching_ademe_mt"
             / "df_selected.csv",
-            index_col=0,
         )
+        print(df_selected.info())
+        print(true_df_selected.info())
 
-        assert df_selected.equals(true_df_selected)
+        pd.testing.assert_frame_equal(df_selected, true_df_selected)
 
     def test_make_final(self, dataframes):
         df_selected = pd.read_csv(
@@ -59,8 +47,7 @@ class TestMatchingAdemeMissionTransition:
 
         true_final_df = pd.read_csv(
             Path(__file__).parent / "fixtures" / "matching_ademe_mt" / "final_df.csv",
-            index_col=0,
         )
 
-        assert (final_df["project"] == true_final_df["project"]).all()
-        assert (final_df["name"] == true_final_df["name"]).all()
+        pd.testing.assert_series_equal(final_df["project"], true_final_df["project"])
+        pd.testing.assert_series_equal(final_df["name"], true_final_df["name"])

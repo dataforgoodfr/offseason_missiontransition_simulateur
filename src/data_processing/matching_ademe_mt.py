@@ -9,10 +9,7 @@ def load_and_process_ademe():
     if not (Config.INTDIR / "ademe.parquet").exists():
         raise RuntimeError("Missing ADEME data")
     df_ademe = pd.read_parquet(Config.INTDIR / "ademe.parquet")
-    sub_df_ademe = pd.DataFrame(
-        dict(project=df_ademe["project"], index_ademe=df_ademe.index)
-    )
-    return df_ademe, sub_df_ademe
+    return df_ademe
 
 
 def load_and_process_mission_transition():
@@ -20,14 +17,8 @@ def load_and_process_mission_transition():
         raise RuntimeError("Missing Mission Transition data")
     df_mission_transition = pd.read_parquet(
         Config.INTDIR / "mission_transition.parquet"
-    )
-    df_mission_transition = df_mission_transition[
-        df_mission_transition["funder_name"] == "ADEME"
-    ]
-    sub_df_mission_transition = pd.DataFrame(
-        dict(name=df_mission_transition["name"], index_mt=df_mission_transition.index)
-    )
-    return df_mission_transition, sub_df_mission_transition
+    ).pipe(lambda df: df[df["funder_name"] == "ADEME"])
+    return df_mission_transition
 
 
 def compute_score(df_product):
@@ -45,36 +36,41 @@ def make_matching(df_product, threshold):
     df_product["score"] = df_product.progress_apply(compute_score, axis=1)
     df_selected = df_product.loc[
         df_product["score"] > threshold, ["index_ademe", "index_mt"]
-    ]
+    ].reset_index(drop=True)
     return df_selected
 
 
 def make_final_dataframe(df_selected, df_ademe, df_mission_transition):
     df_selected_with_ademe = pd.merge(
-        df_selected, df_ademe.reset_index(), left_on="index_ademe", right_on="index"
+        df_selected, df_ademe, left_on="index_ademe", right_index=True
     )
 
     final_df = pd.merge(
         df_selected_with_ademe,
-        df_mission_transition.reset_index(),
+        df_mission_transition,
         left_on="index_mt",
-        right_on="index",
-    )
+        right_index=True,
+    ).reset_index(drop=True)
     return final_df
 
 
 if __name__ == "__main__":
-    MATCHING_THRESHOLD = Config.MATCHING_THRESHOLD
     # Loading data
-    df_ademe, sub_df_ademe = load_and_process_ademe()
-    df_mission_transition, sub_df_mission_transition = load_and_process_ademe()
+    df_ademe = load_and_process_ademe()
+    df_mission_transition = load_and_process_mission_transition()
 
-    df_product = sub_df_ademe.merge(sub_df_mission_transition, how="cross")
+    df_product = (
+        df_ademe[["project"]]
+        .reset_index()
+        .merge(
+            df_mission_transition[["name"]].reset_index(),
+            how="cross",
+            suffixes=["_ademe", "_mt"],
+        )
+    )
 
-    # Extracting salient couples
-    df_selected = make_matching(df_product, MATCHING_THRESHOLD)
+    df_selected = make_matching(df_product, Config.MATCHING_THRESHOLD)
 
-    # Create and save final dataframe
     final_df = make_final_dataframe(df_selected, df_ademe, df_mission_transition)
 
     final_df.to_parquet(Config.INTDIR / "ademe_mt.parquet")
