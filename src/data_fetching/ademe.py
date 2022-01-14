@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import requests
 
@@ -15,7 +16,7 @@ def save_ademe_projects():
 
 def process_ademe():
     columns = {
-        "idBeneficiaire": "siren",
+        "idBeneficiaire": "siret",
         "nomBeneficiaire": "denomination",
         "dateConvention": "date_convention",
         "montant": None,
@@ -28,8 +29,18 @@ def process_ademe():
         .dropna(subset=["idBeneficiaire"])
         .astype(types)
         .rename(columns={k: v for k, v in columns.items() if v})
+        .pipe(_drop_no_siret)
+        .assign(siren=lambda x: np.int64(x["siret"] // 1e5))
     )
     df.to_parquet(Config.INTDIR / "ademe.parquet")
+
+
+def _drop_no_siret(ademe: pd.DataFrame) -> pd.DataFrame:
+    """
+    Drop lines for which the siret does not have at least 11 digits
+    """
+    small_siret = np.log10(ademe["siret"]) < 11
+    return ademe[~small_siret]
 
 
 if __name__ == "__main__":

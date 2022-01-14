@@ -18,3 +18,6 @@ class Config:
     RAWDIR = Path(os.environ.get("RAWDIR", ROOTDIR / "data" / "raw"))
     INTDIR = Path(os.environ.get("INTDIR", ROOTDIR / "data" / "interim"))
     MATCHING_THRESHOLD = 75
+    DB_URI = os.environ.get(
+        "DB_URI", str(ROOTDIR / "data" / "interim" / "mission-transition.sqlite")
+    )
