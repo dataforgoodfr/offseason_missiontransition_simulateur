@@ -35,4 +35,20 @@ To run the complete data pipeline steps :
 ```
 python -m src.data_fetching.ademe
 python -m src.data_fetching.mission_transition
+
+# the following takes more than one hour.
+# you can ask contributors for a pre-filled sqlite file.
+python -m src.data_fetching.sirene
 ```
+
+## Documentation
+
+A sphinx documentation is available under the `docs/` directory.
+First compile the documentation.
+
+```
+cd docs
+make html
+```
+
+Then open the file `docs/build/html/index.html` with your browser.
