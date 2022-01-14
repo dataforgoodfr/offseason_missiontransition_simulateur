@@ -2,7 +2,6 @@
 black
 coverage
 flake8
-thefuzz
 git+https://github.com/tomv564/pyls-mypy.git
 isort
 jupyter
@@ -15,4 +14,3 @@ pyupgrade
 requests_mock
 scikit-learn
 sphinx
-tqdm

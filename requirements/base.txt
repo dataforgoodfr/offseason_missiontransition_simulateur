@@ -4,3 +4,5 @@ python-dotenv
 python-json-logger
 pyarrow
 openpyxl
+thefuzz
+tqdm
