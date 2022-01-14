@@ -35,4 +35,5 @@ To run the complete data pipeline steps :
 ```
 python -m src.data_fetching.ademe
 python -m src.data_fetching.mission_transition
+python -m src.data_processing.matching_ademe_mt
 ```
