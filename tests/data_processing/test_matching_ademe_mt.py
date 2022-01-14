@@ -3,11 +3,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from src.data_processing.matching_ademe_mt import (
-    make_final_dataframe,
-    make_matching,
-    make_sub_dataframes,
-)
+from src.data_processing.matching_ademe_mt import make_final_dataframe, make_matching
 
 
 @pytest.fixture()
@@ -27,11 +23,6 @@ def dataframes():
 
 
 class TestMatchingAdemeMissionTransition:
-    def test_make_sub_dataframes(self, dataframes):
-        sub_df_ademe, sub_df_mission_transition = make_sub_dataframes(*dataframes)
-        assert sub_df_ademe.columns.tolist() == ["project", "index_ademe"]
-        assert sub_df_mission_transition.columns.tolist() == ["name", "index_mt"]
-
     def test_make_matching(self):
         sub_df_ademe = pd.read_csv(
             Path(__file__).parent

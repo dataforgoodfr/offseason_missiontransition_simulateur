@@ -17,3 +17,4 @@ class Config:
     INSEE_SECRET = os.environ.get("INSEE_SECRET")
     RAWDIR = Path(os.environ.get("RAWDIR", ROOTDIR / "data" / "raw"))
     INTDIR = Path(os.environ.get("INTDIR", ROOTDIR / "data" / "interim"))
+    MATCHING_THRESHOLD = 75
