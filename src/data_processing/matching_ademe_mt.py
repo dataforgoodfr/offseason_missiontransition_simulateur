@@ -33,7 +33,13 @@ def make_sub_dataframes(df_ademe, df_mission_transition):
 
 
 def compute_score(df_product):
-    return fuzz.ratio(df_product["name"], df_product["project"])
+    return max(
+        [
+            fuzz.partial_ratio(df_product["name"], df_product["project"]),
+            fuzz.token_set_ratio(df_product["name"], df_product["project"]),
+            fuzz.token_sort_ratio(df_product["name"], df_product["project"]),
+        ]
+    )
 
 
 def make_matching(df_product, threshold):
@@ -78,12 +84,17 @@ if __name__ == "__main__":
         "--threshold",
         type=float,
         help="Threshold to apply for the fuzzy matching",
-        default=70,
+        default=75,
     )
     args = argument_parser.parse_args()
 
     # Loading data
     df_ademe, df_mission_transition = load_data()
+
+    # Selecting ADEME aids
+    df_mission_transition = df_mission_transition[
+        df_mission_transition["funder_name"] == "ADEME"
+    ]
 
     # Keeping the columns used in the fuzzy matching
     sub_df_ademe, sub_df_mission_transition = make_sub_dataframes(
