@@ -135,6 +135,5 @@ dmypy.json
 .pyre/
 
 # Data
-*.csv
 data/raw
 data/interim
