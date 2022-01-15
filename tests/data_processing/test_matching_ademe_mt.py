@@ -33,8 +33,6 @@ class TestMatchingAdemeMissionTransition:
             / "matching_ademe_mt"
             / "df_selected.csv",
         )
-        print(df_selected.info())
-        print(true_df_selected.info())
 
         pd.testing.assert_frame_equal(df_selected, true_df_selected)
 

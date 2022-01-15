@@ -54,7 +54,7 @@ def make_final_dataframe(df_selected, df_ademe, df_mission_transition):
     return final_df
 
 
-if __name__ == "__main__":
+def run_matching():
     # Loading data
     df_ademe = load_and_process_ademe()
     df_mission_transition = load_and_process_mission_transition()
@@ -74,3 +74,7 @@ if __name__ == "__main__":
     final_df = make_final_dataframe(df_selected, df_ademe, df_mission_transition)
 
     final_df.to_parquet(Config.INTDIR / "ademe_mt.parquet")
+
+
+if __name__ == "__main__":
+    run_matching()
