@@ -4,6 +4,7 @@ python-dotenv
 python-json-logger
 pyarrow
 openpyxl
+spacy
 thefuzz
 tqdm
 python-Levenshtein

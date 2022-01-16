@@ -15,12 +15,13 @@ pip install -r requirements/dev.txt
 pre-commit install
 jupyter nbextension install https://github.com/drillan/jupyter-black/archive/master.zip --user
 jupyter nbextension enable jupyter-black-master/jupyter-black
+python -m spacy download fr_core_news_sm
 ```
 
 For production run :
 ```
 pip install -r requirements/base.txt
-pre-commit install
+python -m spacy download fr_core_news_sm
 ```
 
 Create a `.env` text file at the root of the repository to store secret environment variables.
