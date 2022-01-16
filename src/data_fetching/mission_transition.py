@@ -5,6 +5,8 @@ import requests
 
 from src.config import Config
 
+from .common import vect_preproc_text
+
 
 def save_mission_transition_projects():
     url = "https://mission-transition-ecologique.beta.gouv.fr/api/temp/aids"
@@ -18,7 +20,9 @@ def save_mission_transition_projects():
 def process_mission_transition():
     with open(Config.RAWDIR / "mission_transition.json") as f:
         raw = json.load(f)
-    raw = pd.DataFrame.from_records([parse_project(project) for project in raw])
+    raw = pd.DataFrame.from_records([parse_project(project) for project in raw]).assign(
+        name_preproc=lambda df: vect_preproc_text(df["name"])
+    )
     raw.to_parquet(Config.INTDIR / "mission_transition.parquet")
 
 
