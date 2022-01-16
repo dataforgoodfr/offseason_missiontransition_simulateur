@@ -21,7 +21,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -U pip setuptools wheel && pip install -r requirements/dev.txt && pre-commit install
+        pip install -U pip setuptools wheel && pip install -r requirements/dev.txt && pre-commit install && python -m spacy download fr_core_news_sm
     - name: Analysing the code with pre-commit
       run: |
         pre-commit run --all-files
