@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import requests
@@ -5,16 +7,16 @@ import requests
 from src.config import Config
 
 
-def save_ademe_projects():
+def save_ademe_projects(outfn: Path):
     url = "https://koumoul.com/data-fair/api/v1/datasets/les-aides-financieres-de-l%27ademe/raw"
     r = requests.get(url)
     if r.status_code != 200:
         raise RuntimeError(f"API error : {r.content}")
-    with open(Config.RAWDIR / "ademe.xlsx", "bw") as f:
+    with open(outfn, "bw") as f:
         f.write(r.content)
 
 
-def process_ademe():
+def process_ademe(fn: Path, outfn: Path):
     columns = {
         "idBeneficiaire": "siret",
         "nomBeneficiaire": "denomination",
@@ -25,14 +27,14 @@ def process_ademe():
     }
     types = {"idBeneficiaire": int}
     df = (
-        pd.read_excel(Config.RAWDIR / "ademe.xlsx", usecols=columns.keys())
+        pd.read_excel(fn, usecols=columns.keys())
         .dropna(subset=["idBeneficiaire"])
         .astype(types)
         .rename(columns={k: v for k, v in columns.items() if v})
         .pipe(_drop_no_siret)
         .assign(siren=lambda x: np.int64(x["siret"] // 1e5))
     )
-    df.to_parquet(Config.INTDIR / "ademe.parquet")
+    df.to_parquet(outfn)
 
 
 def _drop_no_siret(ademe: pd.DataFrame) -> pd.DataFrame:
@@ -44,6 +46,8 @@ def _drop_no_siret(ademe: pd.DataFrame) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    if not (Config.RAWDIR / "ademe.xlsx").exists():
-        save_ademe_projects()
-    process_ademe()
+    fn = Config.RAWDIR / "ademe.xlsx"
+    if not fn.exists():
+        save_ademe_projects(fn)
+    outfn = Config.INTDIR / "ademe.parquet"
+    process_ademe(fn, outfn)
