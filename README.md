@@ -39,6 +39,8 @@ python -m src.data_fetching.mission_transition
 # the following takes more than one hour.
 # you can ask contributors for a pre-filled sqlite file.
 python -m src.data_fetching.sirene
+
+python -m src.data_processing.matching_ademe_mt
 ```
 
 ## Documentation
