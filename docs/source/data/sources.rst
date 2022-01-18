@@ -42,7 +42,7 @@ python -m src.data_fetching.mission_transition
 
 SIRENE
 ------
-L'API sirene est l'API du gouvernement qui propose des informations administratives sur les entreprises.
+L'API SIRENE est l'API mise à disposition par l'INSEE pour interroger la base SIRENE. Elle contient des informations administratives déclarées par les entreprises.
 Ces informations peuvent servir à estimer le profil des entreprises qui recoivent des subventions.
 
 Chaque siret unique présent dans le fichier `ademe` est requêté et les données de l'établissement sauvegardées dans une base sqlite : `data/interim/mission-transition.sql`.
