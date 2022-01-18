@@ -5,7 +5,7 @@ ADEME
 -----
 L'ADEME est une agence gouvernementale pour l'environnement.
 Elle finance des projects pour la transition écologique.
-L'ADEME met à disposition une API pour pour télécharger près de 20k subventions attribuées, avec le siret de leur bénéficiaire.
+L'ADEME met à disposition une API pour télécharger près de 20k subventions attribuées, avec le siret de leur bénéficiaire.
 Ces données vont permettre d'identifier le profil d'entreprise pour chaque type de subvention.
 
 
