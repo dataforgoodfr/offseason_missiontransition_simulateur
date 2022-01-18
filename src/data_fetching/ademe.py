@@ -6,6 +6,8 @@ import requests
 
 from src.config import Config
 
+from .common import vect_preproc_text
+
 
 def save_ademe_projects(outfn: Path):
     url = "https://koumoul.com/data-fair/api/v1/datasets/les-aides-financieres-de-l%27ademe/raw"
@@ -23,7 +25,8 @@ def process_ademe(fn: Path, outfn: Path):
         "dateConvention": "date_convention",
         "montant": None,
         "nature": None,
-        "objet": "project",
+        "objet": "projet",
+        "referenceDecision": "reference",
     }
     types = {"idBeneficiaire": int}
     df = (
@@ -32,7 +35,10 @@ def process_ademe(fn: Path, outfn: Path):
         .astype(types)
         .rename(columns={k: v for k, v in columns.items() if v})
         .pipe(_drop_no_siret)
-        .assign(siren=lambda x: np.int64(x["siret"] // 1e5))
+        .assign(
+            siren=lambda x: np.int64(x["siret"] // 1e5),
+            projet_preproc=lambda df: vect_preproc_text(df["projet"]),
+        )
     )
     df.to_parquet(outfn)
 
