@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import numpy as np
@@ -5,6 +6,9 @@ import pandas as pd
 import requests
 
 from src.config import Config
+from src.data_fetching.common import v_intmd5
+
+logger = logging.getLogger(__name__)
 
 
 def save_ademe_projects(outfn: Path):
@@ -23,7 +27,7 @@ def process_ademe(fn: Path, outfn: Path):
         "dateConvention": "date_convention",
         "montant": None,
         "nature": None,
-        "objet": "project",
+        "objet": "projet",
     }
     types = {"idBeneficiaire": int}
     df = (
@@ -32,8 +36,14 @@ def process_ademe(fn: Path, outfn: Path):
         .astype(types)
         .rename(columns={k: v for k, v in columns.items() if v})
         .pipe(_drop_no_siret)
-        .assign(siren=lambda x: np.int64(x["siret"] // 1e5))
+        .assign(
+            siren=lambda x: np.int64(x["siret"] // 1e5),
+            projet_md5=lambda frame: v_intmd5(frame["projet"]),
+        )
+        .drop_duplicates(["siret", "projet"])
     )
+    assert df["projet"].nunique() == df["projet_md5"].nunique()
+    logger.info("process_ademe", extra=dict(columns=sorted(df.columns), shape=df.shape))
     df.to_parquet(outfn)
 
 
