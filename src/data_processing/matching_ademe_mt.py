@@ -14,7 +14,7 @@ def load_and_process_ademe():
         raise RuntimeError("Missing ADEME data")
     df_ademe = pd.read_parquet(
         Config.INTDIR / "ademe.parquet", columns=["projet", "projet_md5"]
-    )
+    ).drop_duplicates(["projet_md5"])
     return df_ademe
 
 
