@@ -1,9 +1,12 @@
 import json
+import logging
 
 import pandas as pd
 import requests
 
 from src.config import Config
+
+logger = logging.getLogger(__name__)
 
 
 def save_mission_transition_projects():
@@ -19,6 +22,11 @@ def process_mission_transition():
     with open(Config.RAWDIR / "mission_transition.json") as f:
         raw = json.load(f)
     raw = pd.DataFrame.from_records([parse_project(project) for project in raw])
+    assert raw["source"].nunique() == len(raw)
+    logger.info(
+        "mission_transition", extra=dict(columns=sorted(raw.columns), shape=raw.shape)
+    )
+
     raw.to_parquet(Config.INTDIR / "mission_transition.parquet")
 
 
@@ -43,6 +51,7 @@ def parse_project(api_content: dict) -> dict:
     out["topics"] = _list_names(api_content, "environmentalTopics")
     out["aid_types"] = _list_names(api_content, "types")
     out["regions"] = _list_names(api_content, "regions")
+    out["source"] = int(out["source"][3:])
     return out
 
 

@@ -14,7 +14,7 @@ class TestParseAPIContent:
         out = parse_project(inp)
 
         assert out == {
-            "source": "at_94683",
+            "source": 94683,
             "name": "Financer les études et tests préalables aux investissements servant à incorporer des matières premières issues du recyclage",
             "perimeter": "NATIONAL",
             "details": "<p>\n <strong>\n  Aide - « Études et tests préalables aux investissements pour incorporer des matières premières issues du recyclage », mis en place par l'ADEME\n </strong>\n</p>\n<p>\n Objectif : vous souhaitez étudier ou tester une unité de production intégrant des Matières premières de recyclage (MPR), ou alors adapter une unité existante ? L'ADEME peut vous aider à financer les études et les tests nécessaires à l'expérimentation.\n</p>\n<p>\n Bénéficiaires :\r\nEntreprises de production susceptibles d'utiliser des MPR dans les secteurs de des métaux, du textile, du bâtiment, de l'industrie du papier-carton, du bois...\n <br/>\n <br/>\n Accompagnement : subvention. Taux d'aide maximum : 70 % des dépenses éligibles.\n <br/>\n</p>",
