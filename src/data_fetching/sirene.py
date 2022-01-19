@@ -197,5 +197,35 @@ def _list_tables(con: Connection) -> list:
     return [x[0] for x in cursor.fetchall()]
 
 
+def process_siret():
+    columns = [
+        "adr_code_commune",
+        "adr_code_etranger",
+        "date_creation",
+        "dt_crea_etab",
+        "effectifs",
+        "effectifs_etab",
+        "ent_type",
+        "ess",
+        "forju",
+        "naf",
+        "naf_etab",
+        "siret",
+    ]
+    connector = sqlite3.connect(Config.DB_URI)
+    df = pd.read_sql("select {} from etab".format(",".join(columns)), connector).pipe(
+        _format_siret
+    )
+    df.to_parquet(Config.INTDIR / "sirene.parquet")
+
+
+def _format_siret(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Pipeline to format the raw data of the sirene API
+    """
+    return df
+
+
 if __name__ == "__main__":
     fetch_ademe_siret()
+    process_siret()
