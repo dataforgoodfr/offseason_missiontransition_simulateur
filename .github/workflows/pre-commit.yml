@@ -21,4 +21,6 @@ jobs:
         pre-commit run --all-files
     - name: Unit tests
       run: |
-        pytest
+        coverage run -m pytest
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v1

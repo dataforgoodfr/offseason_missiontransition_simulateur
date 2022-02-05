@@ -3,6 +3,7 @@ import time
 from datetime import date
 from sqlite3 import Connection
 
+import numpy as np
 import pandas as pd
 import requests
 import urllib3
@@ -16,6 +17,8 @@ from src.config import ROOTDIR, Config
 urllib3.disable_warnings()
 
 BASE_URL = "https://api.insee.fr/entreprises/sirene/V3/"
+
+ENT_TYPES = ["TPE", "PME", "ETI", "GE"]
 
 
 class INSEEConnector:
@@ -197,5 +200,70 @@ def _list_tables(con: Connection) -> list:
     return [x[0] for x in cursor.fetchall()]
 
 
+def _process_naf(df: pd.DataFrame, column: str) -> pd.DataFrame:
+    nafs = {
+        v: k
+        for k, v in pd.read_csv(Config.REFDIR / "libelles_naf.csv")["naf8"]
+        .to_dict()
+        .items()
+    }
+    features = {
+        f"{column}_code": df[column]
+        .str.replace(".", "", regex=False)
+        .map(nafs)
+        .fillna(-1)
+        .astype(np.int16)
+    }
+
+    return df.assign(**features)
+
+
+def _ent_type_code(df: pd.DataFrame) -> pd.DataFrame:
+    matching = {k: i for i, k in enumerate(ENT_TYPES)}
+    return df.assign(
+        ent_type_code=lambda df: df["ent_type"].map(matching).fillna(-1).astype(np.int8)
+    )
+
+
+def process_siret():
+    columns = [
+        "adr_code_commune",
+        "adr_code_etranger",
+        "date_creation",
+        "dt_crea_etab",
+        "effectifs",
+        "effectifs_etab",
+        "ent_type",
+        "ess",
+        "forju",
+        "naf",
+        "naf_etab",
+        "siret",
+    ]
+    connector = sqlite3.connect(Config.DB_URI)
+    df = (
+        pd.read_sql(
+            "select {} from etab".format(",".join(columns)),
+            connector,
+        )
+        .pipe(_format_siret)
+        .dropna(subset=["naf"])
+        .pipe(_process_naf, "naf_etab")
+        .pipe(_process_naf, "naf")
+        .pipe(_ent_type_code)
+        .drop(columns=["naf", "naf_etab", "ent_type"])
+        .astype({"forju": np.int16})
+    )
+    df.to_parquet(Config.INTDIR / "sirene.parquet")
+
+
+def _format_siret(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Pipeline to format the raw data of the sirene API
+    """
+    return df
+
+
 if __name__ == "__main__":
     fetch_ademe_siret()
+    process_siret()

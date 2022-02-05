@@ -19,8 +19,9 @@ def test_process_ademe():
         "denomination": "LACTEUS",
         "montant": 5000,
         "nature": "aide en numéraire",
-        "project": "TREMPLIN pour la transition écologique des PME",
+        "projet": "TREMPLIN pour la transition écologique des PME",
         "siren": 499725562,
         "siret": 49972556200023,
+        "projet_md5": 3066776834,
     }
     assert out.to_dict(orient="records")[0] == exp
