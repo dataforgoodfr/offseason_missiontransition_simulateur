@@ -4,6 +4,8 @@ import pandas as pd
 
 from src.config import Config
 
+from .common import mt_features
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,8 +23,7 @@ def join_sources():
 
     mt = pd.read_parquet(
         Config.INTDIR / "mission_transition.parquet",
-        columns=Config.MISSONTRANS_FEATURES,
-    )
+    ).pipe(mt_features)
 
     combined = (
         pd.merge(mt, matching, on=["source"], how="inner")

@@ -2,6 +2,8 @@ import pandas as pd
 
 from src.config import Config
 
+from .common import mt_features
+
 
 def main():
     joined = pd.read_parquet(Config.INTDIR / "joined_project_siret.parquet").assign(
@@ -9,8 +11,7 @@ def main():
     )
     mt = pd.read_parquet(
         Config.INTDIR / "mission_transition.parquet",
-        columns=Config.MISSONTRANS_FEATURES,
-    )
+    ).pipe(mt_features)
 
     sirene = pd.read_parquet(
         Config.INTDIR / "sirene.parquet", columns=Config.SIRENE_FEATURES
