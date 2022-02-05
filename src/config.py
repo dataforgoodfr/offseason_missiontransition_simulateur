@@ -18,6 +18,7 @@ class Config:
     REFDIR = ROOTDIR / "references"
     RAWDIR = Path(os.environ.get("RAWDIR", ROOTDIR / "data" / "raw"))
     INTDIR = Path(os.environ.get("INTDIR", ROOTDIR / "data" / "interim"))
+    PROCDIR = Path(os.environ.get("INTDIR", ROOTDIR / "data" / "interim"))
     MATCHING_THRESHOLD = 75
     DB_URI = os.environ.get("DB_URI", str(INTDIR / "mission-transition.sqlite"))
     MISSONTRANS_FEATURES = ["source"]
