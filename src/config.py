@@ -20,3 +20,5 @@ class Config:
     INTDIR = Path(os.environ.get("INTDIR", ROOTDIR / "data" / "interim"))
     MATCHING_THRESHOLD = 75
     DB_URI = os.environ.get("DB_URI", str(INTDIR / "mission-transition.sqlite"))
+    MISSONTRANS_FEATURES = ["source"]
+    SIRENE_FEATURES = ["siret", "naf_etab_code"]

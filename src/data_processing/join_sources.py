@@ -14,16 +14,14 @@ def join_sources():
         Config.INTDIR / "ademe.parquet", columns=["projet_md5", "siret"]
     )
 
-    # Only naf is currently used in the final model
     sirene = pd.read_parquet(
-        Config.INTDIR / "sirene.parquet", columns=["siret", "naf_etab"]
+        Config.INTDIR / "sirene.parquet", columns=Config.SIRENE_FEATURES
     )
     matching = pd.read_parquet(Config.INTDIR / "ademe_mt.parquet")
 
-    # For now no info about the project is required.
-    # Info will be added depending on the underlying model needs
     mt = pd.read_parquet(
-        Config.INTDIR / "mission_transition.parquet", columns=["source"]
+        Config.INTDIR / "mission_transition.parquet",
+        columns=Config.MISSONTRANS_FEATURES,
     )
 
     combined = (
