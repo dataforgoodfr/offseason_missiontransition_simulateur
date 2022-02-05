@@ -23,7 +23,7 @@ def main():
         .assign(target=0)
         .merge(mt, on=["source"], how="left")
         .merge(sirene, how="left", on=["siret"])
-        .drop(columns=["siret", "source"])
+        .drop_duplicates(subset=["siret", "source"])
     )
 
     combined = pd.concat([joined, neg_samples], axis=0)

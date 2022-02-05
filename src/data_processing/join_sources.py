@@ -29,7 +29,7 @@ def join_sources():
         pd.merge(mt, matching, on=["source"], how="inner")
         .merge(ademe, on=["projet_md5"], how="inner")
         .merge(sirene, on="siret", how="left")
-        .drop(columns=["projet_md5", "siret", "source"])
+        .drop(columns=["projet_md5"])
     )
     logger.info(
         "join_source",
