@@ -8,8 +8,8 @@ logger = logging.getLogger(__name__)
 
 
 def join_sources():
-    # ADELE is only used to join mission transition with sirene
-    # All projet features must be obtained from missions transitoin
+    # ADEME is only used to join mission transition with sirene
+    # All projet features must be obtained from missions transition
     ademe = pd.read_parquet(
         Config.INTDIR / "ademe.parquet", columns=["projet_md5", "siret"]
     )
