@@ -28,3 +28,5 @@ class Config:
 
     # Features to use as categories in lightgbm and catboost
     CATEGORIES = ["naf8", "naf8_etab"]
+
+    NEPTUNE_API_TOKEN = os.environ.get("NEPTUNE_API_TOKEN")

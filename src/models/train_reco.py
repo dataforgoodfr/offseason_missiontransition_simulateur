@@ -3,6 +3,7 @@ import time
 from pathlib import Path
 
 import click
+import neptune.new as neptune
 import pandas as pd
 from cgoudetcore.learning import fit_params, init_model, pred_params
 from cgoudetcore.utils import diffl, git_hash
@@ -13,7 +14,7 @@ from src.config import Config
 
 @click.command()
 @click.argument("model_name")
-@click.option("--save", default=False, type=bool, help="Number of greetings.")
+@click.option("--save", default=True, type=bool, help="Number of greetings.")
 @click.option(
     "--configdir",
     default=str(Config.MODELCONFDIR),
@@ -75,6 +76,11 @@ def train_model(model_name: str, save: bool, configdir: Path):
         )
         metrics["time"] = time.time() - start
         print("time", metrics["time"])
+        preds_train = reg.predict_proba(X_train, **pred_params(reg))[:, 1]
+        metrics["roc_train"] = roc_auc_score(
+            y_train, preds_train, sample_weight=weight_train
+        )
+
         preds_valid = reg.predict_proba(X_valid, **pred_params(reg))[:, 1]
         metrics["roc"] = roc_auc_score(y_valid, preds_valid, sample_weight=weight_valid)
         print("ROC fold{} : {}".format(fold, metrics["roc"]))
@@ -86,22 +92,26 @@ def train_model(model_name: str, save: bool, configdir: Path):
         model_config["metrics"] = scores.to_dict(orient="records")
         with open(configdir / f"{model_name}.json", "w") as f:
             json.dump(model_config, f, indent=4, sort_keys=True)
-        _save_mlflow(model_config, model_name)
+        _save_neptune(model_config, model_name)
 
 
-def _save_mlflow(model_config, model_name):
+def _save_neptune(model_config, model_name):
     last_metrics = model_config["metrics"][-1]
     mean_metrics = pd.DataFrame(model_config["metrics"]).mean()
     metrics_name = diffl(mean_metrics.index.values, ["fold"])
-    with mlflow.start_run(run_name=model_config.get("name")):
-        for c in metrics_name:
-            mlflow.log_metric(c, last_metrics[c])
-            mlflow.log_metric(f"{c}_mean", mean_metrics[c])
-        mlflow.log_param("model", model_name)
-        mlflow.log_param("params", model_config["model_opt"])
-        mlflow.log_param("features", model_config["features"])
-        mlflow.log_param("git_hash", git_hash())
-        mlflow.set_tags(model_config.get("tags", {}))
+
+    run = neptune.init(
+        project="mission-transiton-simulateur/mission-transition-simulateur",
+        api_token=Config.NEPTUNE_API_TOKEN,
+    )
+    run["parameters"] = model_config["model_opt"]
+    run["model"] = model_name
+    run["features"] = model_config["features"]
+    run["git_hash"] = git_hash()
+    for c in metrics_name:
+        run[c] = last_metrics[c]
+        run[f"{c}_mean"] = mean_metrics[c]
+    run.stop()
 
 
 def _perfs_to_dict(df):
