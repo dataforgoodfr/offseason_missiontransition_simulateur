@@ -3,6 +3,7 @@ import logging
 
 import pandas as pd
 import requests
+from sklearn.preprocessing import MultiLabelBinarizer
 
 from src.config import Config
 
@@ -21,7 +22,9 @@ def save_mission_transition_projects():
 def process_mission_transition():
     with open(Config.RAWDIR / "mission_transition.json") as f:
         raw = json.load(f)
-    raw = pd.DataFrame.from_records([parse_project(project) for project in raw])
+    raw = pd.DataFrame.from_records([parse_project(project) for project in raw]).pipe(
+        _process_topic
+    )
     assert raw["source"].nunique() == len(raw)
     logger.info(
         "mission_transition", extra=dict(columns=sorted(raw.columns), shape=raw.shape)
@@ -53,6 +56,16 @@ def parse_project(api_content: dict) -> dict:
     out["regions"] = _list_names(api_content, "regions")
     out["source"] = int(out["source"][3:])
     return out
+
+
+def _process_topic(df: pd.DataFrame) -> pd.DataFrame:
+    mlb = MultiLabelBinarizer()
+    features = pd.DataFrame(
+        mlb.fit_transform(df["topics"]),
+        columns=["topic_" + x for x in mlb.classes_],
+        index=df.index,
+    )
+    return pd.concat([df.drop(columns=["topics"]), features], axis=1)
 
 
 def _list_names(content: dict, key: str) -> list:
