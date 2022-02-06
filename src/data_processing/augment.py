@@ -20,7 +20,7 @@ def main():
     neg_samples = (
         # For now we force negative examples to be 5x the positive
         _negative_sample(mt, sirene, len(joined) * 5)
-        .assign(target=0)
+        .assign(target=0, occurence=1)
         .merge(mt, on=["source"], how="left")
         .merge(sirene, how="left", on=["siret"])
         .drop_duplicates(subset=["siret", "source"])
@@ -32,7 +32,7 @@ def main():
 
 def _negative_sample(mt: pd.DataFrame, sirene: pd.DataFrame, n: int) -> pd.DataFrame:
     combs = pd.merge(mt[["source"]], sirene[["siret"]], how="cross")
-    return combs.sample(n=n)
+    return combs.sample(n=n, random_state=345)
 
 
 if __name__ == "__main__":

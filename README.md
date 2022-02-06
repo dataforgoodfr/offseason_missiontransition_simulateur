@@ -41,6 +41,9 @@ python -m src.data_fetching.mission_transition
 python -m src.data_fetching.sirene
 
 python -m src.data_processing.matching_ademe_mt
+python -m src.data_processing.join_sources
+python -m src.data_processing.augment
+python -m src.data_processing.final_features
 ```
 
 ## Documentation

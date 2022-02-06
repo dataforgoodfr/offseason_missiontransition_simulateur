@@ -30,12 +30,22 @@ def join_sources():
         .merge(ademe, on=["projet_md5"], how="inner")
         .merge(sirene, on="siret", how="left")
         .drop(columns=["projet_md5"])
+        .pipe(add_occurence)
     )
     logger.info(
         "join_source",
         extra={"shape": combined.shape, "features": sorted(combined.columns)},
     )
     combined.to_parquet(Config.INTDIR / "joined_project_siret.parquet")
+
+
+def add_occurence(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add the number of occurence for each couple (source, siret)
+    """
+    group = ["source", "siret"]
+    occurences = df.groupby(group).size().rename("occurence")
+    return df.merge(occurences, left_on=group, right_index=True).drop_duplicates(group)
 
 
 if __name__ == "__main__":
