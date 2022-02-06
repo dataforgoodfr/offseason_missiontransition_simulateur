@@ -10,7 +10,8 @@ Welcome to missiontransition_simulateur's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   data/sources
+   data/index
+   models/index
 
 
 

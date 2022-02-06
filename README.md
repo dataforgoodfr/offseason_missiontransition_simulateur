@@ -27,6 +27,7 @@ Create a `.env` text file at the root of the repository to store secret environm
 
 - `INSEE_KEY` : secret key for the insee api.
 - `INSEE_SECRET` : secret password for the insee api
+- `NEPTUNE_API_TOKEN` : api token of neptune data science platform
 
 ## Data pipeline
 
@@ -41,6 +42,17 @@ python -m src.data_fetching.mission_transition
 python -m src.data_fetching.sirene
 
 python -m src.data_processing.matching_ademe_mt
+python -m src.data_processing.join_sources
+python -m src.data_processing.augment
+python -m src.data_processing.final_features
+```
+
+## Modelisation
+
+To train a recommandation model :
+
+```
+python -m src.models.train_reco <config_name_without_extension> --save <0_or_1>
 ```
 
 ## Documentation

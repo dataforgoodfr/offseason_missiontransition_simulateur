@@ -7,3 +7,4 @@ openpyxl
 thefuzz
 tqdm
 python-Levenshtein
+neptune-client
