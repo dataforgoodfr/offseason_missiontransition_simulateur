@@ -14,7 +14,7 @@ from src.config import Config
 
 @click.command()
 @click.argument("model_name")
-@click.option("--save", default=True, type=bool, help="Number of greetings.")
+@click.option("--save", default=False, type=bool, help="Number of greetings.")
 @click.option(
     "--configdir",
     default=str(Config.MODELCONFDIR),
